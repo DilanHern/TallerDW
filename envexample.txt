@@ -1,0 +1,4 @@
+serverenv=SQLEXPRESS01
+databaseenv=TallerDW
+usernameenv=usuarioprueba
+passwordenv=TuPasswordSeguro123
