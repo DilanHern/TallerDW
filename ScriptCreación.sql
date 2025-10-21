@@ -1,54 +1,54 @@
--- CREACIÓN DE TABLAS DIMENSIONALES
+CREATE DATABASE DW_VENTAS;
+GO
 
+USE DW_VENTAS;
+GO
+
+-- Tabla Dimensión: TIEMPO
 CREATE TABLE DIM_TIEMPO (
     id_fecha INT PRIMARY KEY,
-    año INT NOT NULL,
-    mes INT NOT NULL,
-    dia INT NOT NULL,
-    fecha DATE NOT NULL,
+    anio INT,
+    mes INT,
+    dia INT,
+    fecha DATE,
     semana INT,
-    diaSemana VARCHAR(16),
+    diaSemana VARCHAR(15),
     tipoCambio DECIMAL(12, 2)
 );
+GO
+
+
+-- Tabla Dimensión: ITEM
 CREATE TABLE DIM_ITEM (
     id_item INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    marca VARCHAR(50),
-    precio DECIMAL(12, 2) NOT NULL
+    nombre VARCHAR(50),
+    marca VARCHAR(25)
 );
+GO
 
-CREATE TABLE DIM_VENDEDOR (
-    id_vendedor INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE DIM_WHS (
-    id_bodega INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL
-);
-
+-- Tabla Dimensión: CLIENTE
 CREATE TABLE DIM_CLIENTE (
     id_cliente INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    pais VARCHAR(10),
-    zona VARCHAR(10)
+    nombre VARCHAR(50),
+    pais VARCHAR(25),
+    zona VARCHAR(25)
 );
+GO
 
--- TABLA DE HECHOS
-
+-- Tabla de Hechos: VENTAS
 CREATE TABLE FACT_VENTAS (
     id_ventas INT PRIMARY KEY,
-    quantity INT NOT NULL,
-    total_ventas DECIMAL(18, 2) NOT NULL,
-    id_fecha INT NOT NULL,
-    id_bodega INT NOT NULL,
-    id_cliente INT NOT NULL,
-    id_item INT NOT NULL,
-    id_vendedor INT NOT NULL,
-    -- Definición de claves foráneas
-    CONSTRAINT FK_FACT_TIEMPO FOREIGN KEY (id_fecha) REFERENCES DIM_TIEMPO(id_fecha),
-    CONSTRAINT FK_FACT_WHS FOREIGN KEY (id_bodega) REFERENCES DIM_WHS(id_bodega),
-    CONSTRAINT FK_FACT_CLIENTE FOREIGN KEY (id_cliente) REFERENCES DIM_CLIENTE(id_cliente),
-    CONSTRAINT FK_FACT_ITEM FOREIGN KEY (id_item) REFERENCES DIM_ITEM(id_item),
-    CONSTRAINT FK_FACT_VENDEDOR FOREIGN KEY (id_vendedor) REFERENCES DIM_VENDEDOR(id_vendedor)
+    cantidad INT,
+    total_ventas DECIMAL(15, 2),
+    id_fecha INT,
+    id_cliente INT,
+    id_item INT
+
+    CONSTRAINT FK_VENTAS_TIEMPO FOREIGN KEY (id_fecha)
+    REFERENCES DIM_TIEMPO(id_fecha),
+    CONSTRAINT FK_VENTAS_CLIENTE FOREIGN KEY (id_cliente)
+    REFERENCES DIM_CLIENTE(id_cliente),
+    CONSTRAINT FK_VENTAS_ITEM FOREIGN KEY (id_item)
+    REFERENCES DIM_ITEM(id_item)
 );
+GO
