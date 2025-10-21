@@ -5,6 +5,7 @@ import json
 import pandas as pd
 from dotenv import load_dotenv
 import os
+import platform
 load_dotenv()
 import pyodbc
 from datetime import datetime
@@ -26,8 +27,10 @@ username = os.getenv("usernameenv")
 password = os.getenv("passwordenv")
 
 # detectar driver pq mac usa 18 y windows 17
-drivers = [d for d in pyodbc.drivers() if 'SQL Server' in d]
-driver = drivers[0] if drivers else 'ODBC Driver 17 for SQL Server'
+if platform.system() == "Windows":
+    driver = "ODBC Driver 17 for SQL Server"
+else:
+    driver = "ODBC Driver 18 for SQL Server"
 
 connectionsql = pyodbc.connect(
     f'DRIVER={{{driver}}};'
