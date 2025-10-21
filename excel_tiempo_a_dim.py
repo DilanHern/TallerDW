@@ -7,16 +7,26 @@ load_dotenv()
 import pyodbc
 from datetime import datetime
 import locale
-locale.setlocale(locale.LC_TIME, "es_ES.utf8")
+try:
+    locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+except locale.Error:
+    try:
+        locale.setlocale(locale.LC_TIME, "es_ES")
+    except locale.Error:
+        pass
+
 import pyodbc
 server = os.getenv("serverenv")
 database = os.getenv("databaseenv")
 username = os.getenv("usernameenv")
 password = os.getenv("passwordenv")
 
+# detectar driver pq mac usa 18 y windows 17
+drivers = [d for d in pyodbc.drivers() if 'SQL Server' in d]
+driver = drivers[0] if drivers else 'ODBC Driver 17 for SQL Server'
 
 connectionsql = pyodbc.connect(
-    'DRIVER={ODBC Driver 17 for SQL Server};'
+    f'DRIVER={{{driver}}};'
     f'SERVER={server};'
     f'DATABASE={database};'
     f'UID={username};'

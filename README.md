@@ -1,1 +1,24 @@
 # TallerDW
+
+Orden para correrlo:
+excel_tiempo_a_dim.py
+etl_json.py
+
+Para pruebas, si quieren dropear todo lo de la db:
+-- Limpiar todas las tablas
+DELETE FROM FACT_VENTAS;
+DELETE FROM DIM_TIEMPO;  
+DELETE FROM DIM_ITEM;
+DELETE FROM DIM_CLIENTE;
+
+-- Reiniciar contadores de ID
+DBCC CHECKIDENT ('FACT_VENTAS', RESEED, 0);
+DBCC CHECKIDENT ('DIM_TIEMPO', RESEED, 0);
+DBCC CHECKIDENT ('DIM_ITEM', RESEED, 0);
+DBCC CHECKIDENT ('DIM_CLIENTE', RESEED, 0);
+
+-- Verificar que están vacías
+SELECT COUNT(*) as 'FACT_VENTAS' FROM FACT_VENTAS;
+SELECT COUNT(*) as 'DIM_TIEMPO' FROM DIM_TIEMPO;
+SELECT COUNT(*) as 'DIM_ITEM' FROM DIM_ITEM;
+SELECT COUNT(*) as 'DIM_CLIENTE' FROM DIM_CLIENTE;
