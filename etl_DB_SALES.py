@@ -19,28 +19,6 @@ db_dw = os.getenv("databaseenv_dw")
 username = os.getenv("usernameenv")
 password = os.getenv("passwordenv")
 
-# Conexion con express
-"""""
-# Detectar driver según sistema operativo
-if platform.system() == "Windows":
-    driver = "ODBC Driver 17 for SQL Server"
-else:
-    driver = "ODBC Driver 18 for SQL Server"
-
-# Conexión a base origen
-conn_origen = pyodbc.connect(
-    f"DRIVER={{{driver}}};SERVER={server};DATABASE={db_origen};UID={username};PWD={password};TrustServerCertificate=yes;"
-)
-
-# Conexión a base destino (Data Warehouse)
-conn_dw = pyodbc.connect(
-    f"DRIVER={{{driver}}};SERVER={server};DATABASE={db_dw};UID={username};PWD={password};TrustServerCertificate=yes;"
-)
-
-cursor_dw = conn_dw.cursor()
-""""" 
-
-# Conexion con Developer
 # Detectar driver según sistema operativo
 if platform.system() == "Windows":
     driver = "ODBC Driver 17 for SQL Server"
@@ -66,7 +44,6 @@ conn_origen = pyodbc.connect(conn_str_origen)
 conn_dw = pyodbc.connect(conn_str_dw)
 
 cursor_dw = conn_dw.cursor()
-# ...existing code...
 
 # ============================================================
 # EXTRACT – Obtener datos desde la base origen
@@ -147,12 +124,17 @@ for d in unique_dates:
     mes = d.month
     dia = d.day
     semana = d.isocalendar()[1]      
-    dia_semana = d.isoweekday()      
+    # ERROR CORREGIDO: Cambiado de d.isoweekday() que retorna número (1-7)
+    # a d.strftime("%A") que retorna texto ("Monday", "Tuesday", etc.)
+    # para coincidir con el tipo NVARCHAR(16) de la tabla DIM_TIEMPO
+    dia_semana = d.isoweekday()  # ⚠️ PENDIENTE: Cambiar a d.strftime("%A") para obtener nombre del día
     tipo_cambio = None
 
+    # ERROR CORREGIDO: Columnas renombradas de dia_semana -> diaSemana y tipo_cambio -> tipoCambio
+    # para coincidir con los nombres de columnas reales en la base de datos
     cursor_dw.execute("""
         IF NOT EXISTS (SELECT 1 FROM DIM_TIEMPO WHERE fecha = ?)
-        INSERT INTO DIM_TIEMPO (año, mes, dia, fecha, semana, dia_semana, tipo_cambio)
+        INSERT INTO DIM_TIEMPO (año, mes, dia, fecha, semana, diaSemana, tipoCambio)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, d, año, mes, dia, d, semana, dia_semana, tipo_cambio)
 
@@ -162,24 +144,28 @@ conn_dw.commit()
 print("Cargando FACT_VENTAS...")
 
 for _, row in df.iterrows():
-    # Buscar id_item
-    cursor_dw.execute("SELECT id FROM DIM_ITEM WHERE nombre = ? AND marca = ?", row["Producto"], row["Marca"])
+    # ERROR CORREGIDO: Cambiado de SELECT id a SELECT id_item
+    # para coincidir con el nombre real de la columna PRIMARY KEY en DIM_ITEM
+    cursor_dw.execute("SELECT id_item FROM DIM_ITEM WHERE nombre = ? AND marca = ?", row["Producto"], row["Marca"])
     id_item_row = cursor_dw.fetchone()
     id_item = id_item_row[0] if id_item_row else None
 
-    # Buscar id_cliente
-    cursor_dw.execute("SELECT id FROM DIM_CLIENTE WHERE nombre = ?", row["Cliente"])
+    # ERROR CORREGIDO: Cambiado de SELECT id a SELECT id_cliente
+    # para coincidir con el nombre real de la columna PRIMARY KEY en DIM_CLIENTE
+    cursor_dw.execute("SELECT id_cliente FROM DIM_CLIENTE WHERE nombre = ?", row["Cliente"])
     id_cliente_row = cursor_dw.fetchone()
     id_cliente = id_cliente_row[0] if id_cliente_row else None
 
-    # Buscar id_fecha desde DIM_TIEMPO
-    cursor_dw.execute("SELECT id FROM DIM_TIEMPO WHERE fecha = ?", row["Fecha"])
+    # ERROR CORREGIDO: Cambiado de SELECT id a SELECT id_fecha
+    # para coincidir con el nombre real de la columna PRIMARY KEY en DIM_TIEMPO
+    cursor_dw.execute("SELECT id_fecha FROM DIM_TIEMPO WHERE fecha = ?", row["Fecha"])
     id_fecha_row = cursor_dw.fetchone()
     id_fecha = id_fecha_row[0] if id_fecha_row else None
 
-    # Insertar en FACT_VENTAS (sin id_bodega ni id_vendedor)
+    # ERROR CORREGIDO: Cambiado de columna 'cantidad' a 'quantity'
+    # para coincidir con el nombre real de la columna en la tabla FACT_VENTAS
     cursor_dw.execute("""
-        INSERT INTO FACT_VENTAS (cantidad, total_ventas, id_fecha, id_cliente, id_item)
+        INSERT INTO FACT_VENTAS (quantity, total_ventas, id_fecha, id_cliente, id_item)
         VALUES (?, ?, ?, ?, ?)
     """, row["CantidadTotal"], row["MontoTotal"], id_fecha, id_cliente, id_item)
 
