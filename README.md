@@ -1,24 +1,33 @@
-# TallerDW
+# TallerDW - Data Warehouse de Ventas
 
-Orden para correrlo:
-excel_tiempo_a_dim.py
-etl_json.py
+##  Instalación
 
-Para pruebas, si quieren dropear todo lo de la db:
--- Limpiar todas las tablas
-DELETE FROM FACT_VENTAS;
-DELETE FROM DIM_TIEMPO;  
-DELETE FROM DIM_ITEM;
-DELETE FROM DIM_CLIENTE;
+```powershell
+py -m pip install pandas pyodbc python-dotenv openpyxl
+```
 
--- Reiniciar contadores de ID
-DBCC CHECKIDENT ('FACT_VENTAS', RESEED, 0);
-DBCC CHECKIDENT ('DIM_TIEMPO', RESEED, 0);
-DBCC CHECKIDENT ('DIM_ITEM', RESEED, 0);
-DBCC CHECKIDENT ('DIM_CLIENTE', RESEED, 0);
+## ⚙️ Configuración
 
--- Verificar que están vacías
-SELECT COUNT(*) as 'FACT_VENTAS' FROM FACT_VENTAS;
-SELECT COUNT(*) as 'DIM_TIEMPO' FROM DIM_TIEMPO;
-SELECT COUNT(*) as 'DIM_ITEM' FROM DIM_ITEM;
-SELECT COUNT(*) as 'DIM_CLIENTE' FROM DIM_CLIENTE;
+Crear archivo `.env` con tus credenciales:
+
+```properties
+serverenv=TU_SERVIDOR\SQLEXPRESS
+databaseenv=DW_VENTAS
+databaseenv_origen=DB_SALES
+databaseenv_dw=DW_VENTAS
+usernameenv=
+passwordenv=
+```
+
+## 🚀 Ejecutar (en orden)
+
+```powershell
+# 1. Cargar dimensión de tiempo
+py excel_tiempo_a_dim.py
+
+# 2. Cargar ventas desde JSON
+py etl_json.py
+
+# 3. Cargar ventas desde DB origen
+py etl_DB_SALES.py
+```
